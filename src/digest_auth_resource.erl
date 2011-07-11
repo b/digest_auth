@@ -12,8 +12,8 @@
 init([]) -> {ok, #state{realm="testrealm@boundary.com"}}.
 
 is_authorized(ReqData, State=#state{realm=Realm}) ->
-	Response = digest_auth:is_authorized(ReqData, Realm, fun digest_auth:get_password/2),
-	{Response, ReqData, State}.
-	
+  Response = digest_auth:is_authorized(ReqData, Realm, fun digest_auth:get_password/2),
+  {Response, ReqData, State}.
+  
 to_html(ReqData, State) ->
-    {"<html><body>Hello, new world</body></html>", ReqData, State}.
+  {"<html><body>Hello, new world</body></html>", ReqData, State}.

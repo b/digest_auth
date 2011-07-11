@@ -23,43 +23,43 @@ start(Config) ->
   gen_server:start({local, ?MODULE}, ?MODULE, [Config], []).
 
 init(_Config) ->
-	EtsDb = ets:new(nonces,
+  EtsDb = ets:new(nonces,
                   [set, protected, {keypos, 2},
                    {heir, none}, {write_concurrency, false},
                    {read_concurrency, false}]),
   {ok, #state{ets_db=EtsDb}}.
 
 handle_call({insert, Nonce, Opaque, Options}, _From, State=#state{ets_db=EtsDb}) ->
-	Max = proplists:get_value(max, Options, ?MAX_INT),
-	Lifetime = proplists:get_value(lifetime, Options, ?NONCE_LIFETIME),
-	ets:insert(EtsDb, #nonce{
-		n=Nonce,
-		o=Opaque,
-		ts=timestamp(),
-		nc=0,
-		max=Max
-	}),
-	erlang:send_after(Lifetime, self(), {expire, Nonce}),
-	{reply, ok, State};
+  Max = proplists:get_value(max, Options, ?MAX_INT),
+  Lifetime = proplists:get_value(lifetime, Options, ?NONCE_LIFETIME),
+  ets:insert(EtsDb, #nonce{
+    n=Nonce,
+    o=Opaque,
+    ts=timestamp(),
+    nc=0,
+    max=Max
+  }),
+  erlang:send_after(Lifetime, self(), {expire, Nonce}),
+  {reply, ok, State};
 
 handle_call({validate, Params}, _From, State=#state{ets_db=EtsDb}) ->
-	Nonce = proplists:get_value(nonce, Params),
-	Response = case ets:lookup(EtsDb, Nonce) of
-		[NR=#nonce{o=Opaque,nc=NC,max=Max}] ->
-			Opaque2 = proplists:get_value(opaque, Params),
-			NC2 = proplists:get_value(nc, Params),
-			case validate(Opaque == Opaque2,
-			         NC == (erlang:list_to_integer(NC2) - 1),
-			         NC < Max,
-			         digest_auth:is_valid(Params)) of
-			  ok ->
-					ets:insert(EtsDb, NR#nonce{nc=NC2}),
-					ok;
-				Error -> Error
-			end;
-		_ -> {expired, Nonce}
-	end,
-	{reply, Response, State}.
+  Nonce = proplists:get_value(nonce, Params),
+  Response = case ets:lookup(EtsDb, Nonce) of
+    [NR=#nonce{o=Opaque,nc=NC,max=Max}] ->
+      Opaque2 = proplists:get_value(opaque, Params),
+      NC2 = proplists:get_value(nc, Params),
+      case validate(Opaque == Opaque2,
+               NC == (erlang:list_to_integer(NC2) - 1),
+               NC < Max,
+               digest_auth:is_valid(Params)) of
+        ok ->
+          ets:insert(EtsDb, NR#nonce{nc=NC2}),
+          ok;
+        Error -> Error
+      end;
+    _ -> {expired, Nonce}
+  end,
+  {reply, Response, State}.
 
 validate(true, true, true, true) -> ok;
 validate(false, _, _, _) -> {error, "Bad opaque"};
@@ -70,8 +70,8 @@ validate(_, _, _, false) -> {error, "Invalid response"}.
 handle_cast(_, State) -> {noreply, State}.
 
 handle_info({expire, Nonce}, State=#state{ets_db=EtsDb}) ->
-	ets:delete(EtsDb, Nonce),
-	{noreply, State};
+  ets:delete(EtsDb, Nonce),
+  {noreply, State};
 handle_info(_Info, State) -> {noreply, State}.
 
 terminate(_, _) -> ok.
@@ -86,5 +86,5 @@ validate(Params) -> gen_server:call(nonce_cache, {validate, Params}).
 timestamp() ->
   calendar:datetime_to_gregorian_seconds(calendar:universal_time()) -
     calendar:datetime_to_gregorian_seconds( {{1970,1,1},{0,0,0}} ).
-	
+  
 expire(Nonce) -> ets:delete(nonces, Nonce).
