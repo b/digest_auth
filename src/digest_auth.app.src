@@ -1,0 +1,18 @@
+%%-*- mode: erlang -*-
+{application, digest_auth,
+ [
+  {description, "digest_auth"},
+  {vsn, "1"},
+  {modules, []},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  inets,
+                  crypto,
+                  mochiweb,
+                  webmachine
+                 ]},
+  {mod, { digest_auth_app, []}},
+  {env, []}
+ ]}.
