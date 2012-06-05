@@ -53,8 +53,8 @@ init([]) ->
     Web = {webmachine_mochiweb,
            {webmachine_mochiweb, start, [WebConfig]},
            permanent, 5000, worker, dynamic},
-		NonceCache = {nonce_cache,
-		              {nonce_cache, start, []},
-        		      permanent, 5000, worker, dynamic},
+    NonceCache = {nonce_cache,
+                  {nonce_cache, start, []},
+                  permanent, 5000, worker, dynamic},
     Processes = [NonceCache, Web],
     {ok, { {one_for_one, 10, 10}, Processes} }.
