@@ -1,0 +1,1 @@
+This is a prototype implementation of HTTP Digest authentication for Webmachine.
