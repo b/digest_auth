@@ -1,14 +1,13 @@
-%% @author author <author@example.com>
-%% @copyright YYYY author.
+%% @author Benjamin Black <b@b3k.us>
+%% @copyright 2011 Benjamin Black.
 
 %% @doc digest_auth startup code
 
 -module(digest_auth).
--author('author <author@example.com>').
+-author('Benjamin Black <b@b3k.us>').
 -export([start/0, start_link/0, stop/0]).
 -export([is_authorized/3]).
 -export([challenge/1, is_valid/1]).
--export([get_password/2]).
 
 ensure_started(App) ->
     case application:start(App) of
@@ -96,11 +95,6 @@ make_challenge(Realm, Nonce, Opaque) ->
     "\",qop=\"auth,auth-int\"" ++
     ",nonce=\"" ++ Nonce ++
     "\",opaque=\"" ++ Opaque ++ "\"".
-
-get_password(_Realm, Username) ->
-  proplists:get_value(Username, [
-    {"foo", "bar"}, {"baz", "bal"}
-  ]).
 
 parse_params(Params) ->
   [ parse_param_pair(string:tokens(P, "=")) || P <- string:tokens(Params, ", ") ].

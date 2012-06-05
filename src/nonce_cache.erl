@@ -1,4 +1,10 @@
+%% @author Benjamin Black <b@b3k.us>
+%% @copyright 2011 Benjamin Black.
+
+%% @doc digest_auth ETS-based nonce cache
+
 -module(nonce_cache).
+-author('Benjamin Black <b@b3k.us>').
 -behaviour(gen_server).
 
 -export([start/0, start/1, init/1]).

@@ -1,10 +1,10 @@
-%% @author author <author@example.com>
-%% @copyright YYYY author.
+%% @author Benjamin Black <b@b3k.us>
+%% @copyright 2011 Benjamin Black.
 
 %% @doc Supervisor for the digest_auth application.
 
 -module(digest_auth_sup).
--author('author <author@example.com>').
+-author('Benjamin Black <b@b3k.us>').
 
 -behaviour(supervisor).
 

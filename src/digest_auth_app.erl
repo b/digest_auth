@@ -1,10 +1,10 @@
-%% @author author <author@example.com>
-%% @copyright YYYY author.
+%% @author Benjamin Black <b@b3k.us>
+%% @copyright 2011 Benjamin Black.
 
 %% @doc Callbacks for the digest_auth application.
 
 -module(digest_auth_app).
--author('author <author@example.com>').
+-author('Benjamin Black <b@b3k.us>').
 
 -behaviour(application).
 -export([start/2,stop/1]).
