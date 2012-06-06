@@ -10,44 +10,34 @@
 -export([challenge/1, is_valid/1]).
 
 ensure_started(App) ->
-    case application:start(App) of
-        ok ->
-            ok;
-        {error, {already_started, App}} ->
-            ok
-    end.
+  case application:start(App) of
+    ok ->
+	  ok;
+    {error, {already_started, App}} ->
+      ok
+  end.
 
 %% @spec start_link() -> {ok,Pid::pid()}
 %% @doc Starts the app for inclusion in a supervisor tree
 start_link() ->
-    ensure_started(inets),
-    ensure_started(crypto),
-    ensure_started(mochiweb),
-    application:set_env(webmachine, webmachine_logger_module, 
-                        webmachine_logger),
-    ensure_started(webmachine),
-    digest_auth_sup:start_link().
+  ensure_started(inets),
+  ensure_started(crypto),
+  digest_auth_sup:start_link().
 
 %% @spec start() -> ok
 %% @doc Start the digest_auth server.
 start() ->
-    ensure_started(inets),
-    ensure_started(crypto),
-    ensure_started(mochiweb),
-    application:set_env(webmachine, webmachine_logger_module, 
-                        webmachine_logger),
-    ensure_started(webmachine),
-    application:start(digest_auth).
+  ensure_started(inets),
+  ensure_started(crypto),
+  application:start(digest_auth).
 
 %% @spec stop() -> ok
 %% @doc Stop the digest_auth server.
 stop() ->
-    Res = application:stop(digest_auth),
-    application:stop(webmachine),
-    application:stop(mochiweb),
-    application:stop(crypto),
-    application:stop(inets),
-    Res.
+  Res = application:stop(digest_auth),
+  application:stop(crypto),
+  application:stop(inets),
+  Res.
 
 is_authorized(ReqData, Realm, PasswordFun) ->
   case wrq:get_req_header("Authorization", ReqData) of
@@ -80,10 +70,8 @@ hexify(String) when erlang:is_list(String) ->
 hexify(Binary) when erlang:is_binary(Binary) ->
   string:to_lower(lists:flatten([[erlang:integer_to_list(N1, 16), erlang:integer_to_list(N2, 16)]
                                     || << N1:4, N2:4 >> <= Binary])).
-make_random_string() ->
-  Seed = crypto:rand_bytes(32),
-  Hash = crypto:sha(Seed),
-  hexify(Hash).
+
+make_random_string() -> hexify(crypto:sha(crypto:rand_bytes(32))).
 
 challenge(Realm) ->
   Nonce = make_random_string(), Opaque = make_random_string(),
@@ -91,10 +79,10 @@ challenge(Realm) ->
   make_challenge(Realm, Nonce, Opaque).
 
 make_challenge(Realm, Nonce, Opaque) ->
-    "Digest realm=\"" ++ Realm ++
-    "\",qop=\"auth,auth-int\"" ++
-    ",nonce=\"" ++ Nonce ++
-    "\",opaque=\"" ++ Opaque ++ "\"".
+  "Digest realm=\"" ++ Realm ++
+  "\",qop=\"auth,auth-int\"" ++
+  ",nonce=\"" ++ Nonce ++
+  "\",opaque=\"" ++ Opaque ++ "\"".
 
 parse_params(Params) ->
   [ parse_param_pair(string:tokens(P, "=")) || P <- string:tokens(Params, ", ") ].
@@ -112,15 +100,14 @@ make_response(undefined, Params) ->
   HA1 = ha1(Params),
   Nonce = proplists:get_value(nonce, Params),
   HA2 = ha2(undefined, Params),
-  hexify(crypto:md5(HA1 ++ ":" ++ Nonce ++ ":" ++ HA2));
+  hexify(crypto:md5(string:join([HA1, Nonce, HA2], ":")));
 make_response(Qop, Params) ->
   HA1 = ha1(Params),
   Nonce = proplists:get_value(nonce, Params),
   NC = proplists:get_value(nc, Params),
   CNonce = proplists:get_value(cnonce, Params),
   HA2 = ha2(Qop, Params),
-  hexify(crypto:md5(HA1 ++ ":" ++ Nonce ++ ":" ++ NC ++
-                    ":" ++ CNonce ++ ":" ++ Qop ++ ":" ++ HA2)).
+  hexify(crypto:md5(string:join([HA1, Nonce, NC, CNonce, Qop, HA2], ":"))).
 
 ha1(Params) ->
   Password = proplists:get_value(password, Params),
@@ -130,7 +117,7 @@ ha1_pw(undefined, _Params) -> [];
 ha1_pw(Password, Params) ->
   Username = proplists:get_value(username, Params),
   Realm = proplists:get_value(realm, Params),
-  hexify(crypto:md5(Username ++ ":" ++ Realm ++ ":" ++ Password)).
+  hexify(crypto:md5(string:join([Username, Realm, Password], ":"))).
 
 ha2(undefined, Params) -> ha2_rfc2069(Params);
 ha2("auth", Params) -> ha2_rfc2069(Params);
@@ -138,9 +125,9 @@ ha2("auth-int", Params) ->
   Method = proplists:get_value(method, Params),
   URI = proplists:get_value(uri, Params),
   Body = proplists:get_value(body, Params),
-  hexify(crypto:md5(Method ++ ":" ++ URI ++ ":" ++ hexify(crypto:md5(Body)))).
+  hexify(crypto:md5(string:join([Method, URI, hexify(crypto:md5(Body))], ":"))).
 
 ha2_rfc2069(Params) ->
   Method = proplists:get_value(method, Params),
   URI = proplists:get_value(uri, Params),
-  hexify(crypto:md5(Method ++ ":" ++ URI)).
+  hexify(crypto:md5(string:join([Method, URI], ":"))).
