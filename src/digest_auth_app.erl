@@ -13,9 +13,9 @@
 %% @spec start(_Type, _StartArgs) -> ServerRet
 %% @doc application start callback for digest_auth.
 start(_Type, _StartArgs) ->
-    digest_auth_sup:start_link().
+  digest_auth_sup:start_link().
 
 %% @spec stop(_State) -> ServerRet
 %% @doc application stop callback for digest_auth.
 stop(_State) ->
-    ok.
+  ok.
