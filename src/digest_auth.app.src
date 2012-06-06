@@ -2,16 +2,14 @@
 {application, digest_auth,
  [
   {description, "digest_auth"},
-  {vsn, "1"},
+  {vsn, "0.1"},
   {modules, []},
   {registered, []},
   {applications, [
                   kernel,
                   stdlib,
                   inets,
-                  crypto,
-                  mochiweb,
-                  webmachine
+                  crypto
                  ]},
   {mod, { digest_auth_app, []}},
   {env, []}
